@@ -1,0 +1,28 @@
+{
+    "name": "balajidharma/laravel-menu",
+    "description": "Laravel database menu manager",
+    "license": "MIT",
+    "keywords": ["menu","laravel","laravel-menu", "menu-manager", "laravel-menu-manager"],
+    "authors": [
+        {
+            "name": "Balaji Dharmaraja",
+            "homepage": "https://github.com/balajidharma"
+        }
+    ],
+    "require": {
+        "illuminate/support": "^8.71|^9.0",
+        "staudenmeir/laravel-adjacency-list":"^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "BalajiDharma\\LaravelMenu\\": "src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "BalajiDharma\\LaravelMenu\\MenuServiceProvider"
+            ]
+        }
+    }
+}
