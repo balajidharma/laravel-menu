@@ -288,6 +288,26 @@ trait MenuTree
     }
 
     /**
+     * Build the link based on uri
+     *
+     */
+    protected function getLinkAttribute()
+    {
+        $uri = trim($this->uri);
+
+        if (strpos($uri, '<nolink>') !== false) {
+            $uri = '';
+        }
+
+        if (strpos($uri, '<admin>') !== false) {
+            $uri = str_replace('<admin>', config('admin.prefix', 'admin'), $uri);
+        }
+
+        return $uri;
+    }
+
+
+    /**
      * {@inheritdoc}
      */
     public function delete()
@@ -297,6 +317,11 @@ trait MenuTree
         $this->where($this->getParentColumn(), $this->getKey())->update([$this->getParentColumn() => $newParent]);
 
         return parent::delete();
+    }
+
+    public function initializeMenuTree()
+    {
+        $this->appends = array_unique(array_merge($this->appends, ['link']));
     }
 
     /**
