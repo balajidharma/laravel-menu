@@ -7,9 +7,17 @@
 </p>
 
 ## Installation
-
+- Install the package via composer
 ```bash
 composer require balajidharma/laravel-menu
+```
+- Publish the migration and the config/menu.php config file with
+```bash
+php artisan vendor:publish --provider="BalajiDharma\LaravelMenu\MenuServiceProvider"
+```
+- Run the migrations
+```bash
+php artisan migrate
 ```
 
 ## Create Menu
