@@ -4,6 +4,7 @@ namespace BalajiDharma\LaravelMenu\Models;
 
 use BalajiDharma\LaravelMenu\Exceptions\MachineNameInvalidArgument;
 use BalajiDharma\LaravelMenu\Exceptions\MenuAlreadyExists;
+use BalajiDharma\LaravelMenu\Exceptions\MenuNotExists;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -43,5 +44,13 @@ class Menu extends Model
 
     public static function validateMachineName($machine_name) {
         return preg_match('/^[a-z0-9_-]+$/', $machine_name);
+    }
+
+    protected static function getMenuTree($machine_name) {
+        $menu = Menu::where('machine_name', $machine_name)->first();
+        if(!$menu){
+            throw MenuNotExists::create($machine_name);
+        }
+        return (new MenuItem)->toTree($menu->id);
     }
 }
