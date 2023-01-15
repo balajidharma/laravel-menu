@@ -104,8 +104,8 @@ $items = (new MenuItem)->toTree($menu->id);
 ```
 
 ## Menu Link Tokens
-- Enter <admin> to add admin prefix to the link.
-- Enter <nolink> for non link menu.
+- Enter `<admin>` to add admin prefix to the link.
+- Enter `<nolink>` for non link menu.
 
 Get the generated uri on `link` attribute
 ```php
