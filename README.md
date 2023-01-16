@@ -20,6 +20,9 @@ php artisan vendor:publish --provider="BalajiDharma\LaravelMenu\MenuServiceProvi
 php artisan migrate
 ```
 
+## Demo
+The "[Basic Laravel Admin Penel](https://github.com/balajidharma/basic-laravel-admin-panel)" starter kit come with Laravel Menu
+
 ## Create Menu
 ```php
 
