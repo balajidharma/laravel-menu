@@ -99,8 +99,18 @@ $menu->menuItems()->createMany($menu_items);
 ```
 
 ## Menu Tree
+- Get menu tree by using menu id
 ```php
+use BalajiDharma\LaravelMenu\Models\MenuItem;
+
 $items = (new MenuItem)->toTree($menu->id);
+```
+
+- Get menu tree by using menu machine name
+```php
+use BalajiDharma\LaravelMenu\Models\Menu;
+
+$items = Menu::getMenuTree('admin');
 ```
 
 ## Menu Link Tokens
