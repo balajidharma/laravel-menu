@@ -6,6 +6,16 @@
 <a href="https://packagist.org/packages/balajidharma/laravel-menu"><img src="https://poser.pugx.org/balajidharma/laravel-menu/license" alt="License"></a>
 </p>
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Demo](#demo)
+- [Create Menu](#create-menu)
+- [Create Menu Item](#create-menu-item)
+- [Create multiple Menu Items](#create-multiple-menu-items)
+- [Menu Tree](#menu-tree)
+- [Menu Link Tokens](#menu-link-tokens)
+
 ## Installation
 - Install the package via composer
 ```bash
