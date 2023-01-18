@@ -23,7 +23,7 @@ class CreateMenuTables extends Migration
             $table->timestamps();
         });
 
-        Schema::create($tableNames['menu_items'], function (Blueprint $table) {
+        Schema::create($tableNames['menu_items'], function (Blueprint $table) use($tableNames) {
             $table->bigIncrements('id');
 
             $table->unsignedBigInteger('menu_id');
