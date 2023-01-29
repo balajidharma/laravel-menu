@@ -51,6 +51,6 @@ class CreateMenuTables extends Migration
     {
         $tableNames = config('menu.table_names');
         Schema::dropIfExists($tableNames['menu_items']);
-        Schema::dropIfExists($tableNames['menu']);
+        Schema::dropIfExists($tableNames['menus']);
     }
 }
