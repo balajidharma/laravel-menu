@@ -37,7 +37,7 @@ class CreateMenuTables extends Migration
             $table->string('description')->nullable();
             $table->unsignedBigInteger('parent_id')->nullable();
             $table->integer('weight')->default(0);
-            $table->boolean('enabled');
+            $table->boolean('enabled')->default(1);
             $table->timestamps();
         });
     }
