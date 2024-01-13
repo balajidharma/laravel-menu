@@ -24,12 +24,12 @@ class Menu extends Model
 
     public static function create(array $attributes = [])
     {
-        if (!static::validateMachineName($attributes['machine_name'])) {
+        if (! static::validateMachineName($attributes['machine_name'])) {
             throw MachineNameInvalidArgument::create();
         }
 
         $menu = Menu::where('machine_name', $attributes['machine_name'])->first();
-        
+
         if ($menu) {
             throw MenuAlreadyExists::create($attributes['machine_name']);
         }
@@ -42,15 +42,18 @@ class Menu extends Model
         return $this->hasMany(config('menu.models.menu_item'));
     }
 
-    public static function validateMachineName($machine_name) {
+    public static function validateMachineName($machine_name)
+    {
         return preg_match('/^[a-z0-9_-]+$/', $machine_name);
     }
 
-    protected static function getMenuTree($machine_name, $includeDisabledItems = false) {
+    protected static function getMenuTree($machine_name, $includeDisabledItems = false)
+    {
         $menu = Menu::where('machine_name', $machine_name)->first();
-        if(!$menu){
+        if (! $menu) {
             throw MenuNotExists::create($machine_name);
         }
+
         return (new MenuItem)->toTree($menu->id, $includeDisabledItems);
     }
 }

@@ -12,7 +12,7 @@ class MenuItem extends Model
         MenuTree::boot as treeBoot;
     }
 
-     /**
+    /**
      * The attributes that aren't mass assignable.
      *
      * @var array
@@ -37,5 +37,4 @@ class MenuItem extends Model
     {
         $this->attributes['weight'] = $weight ?? 0;
     }
-
 }

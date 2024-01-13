@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Request;
 
 trait MenuTree
 {
-
     /**
      * @var \Closure
      */
@@ -45,7 +44,7 @@ trait MenuTree
 
         $parent = $this->parent;
 
-        while (!is_null($parent)) {
+        while (! is_null($parent)) {
             $parents->push($parent);
             $parent = $parent->parent;
         }
@@ -76,7 +75,7 @@ trait MenuTree
     /**
      * Set parent column.
      *
-     * @param string $column
+     * @param  string  $column
      */
     public function setParentColumn($column)
     {
@@ -100,7 +99,7 @@ trait MenuTree
     /**
      * Set title column.
      *
-     * @param string $column
+     * @param  string  $column
      */
     public function setTitleColumn($column)
     {
@@ -124,14 +123,14 @@ trait MenuTree
     /**
      * Set order column.
      *
-     * @param string $column
+     * @param  string  $column
      */
     public function setOrderColumn($column)
     {
         $this->orderColumn = $column;
     }
 
-     /**
+    /**
      * @return string
      */
     public function getMenuRelationColumn()
@@ -146,7 +145,7 @@ trait MenuTree
     /**
      * Set menu relation column.
      *
-     * @param string $column
+     * @param  string  $column
      */
     public function setMenuRelationColumn($column)
     {
@@ -156,11 +155,10 @@ trait MenuTree
     /**
      * Set query callback to model.
      *
-     * @param \Closure|null $query
      *
      * @return $this
      */
-    public function withQuery(\Closure $query = null)
+    public function withQuery(?\Closure $query = null)
     {
         $this->queryCallback = $query;
 
@@ -180,9 +178,7 @@ trait MenuTree
     /**
      * Build Nested array.
      *
-     * @param array $nodes
-     * @param int   $parentId
-     *
+     * @param  int  $parentId
      * @return array
      */
     protected function buildNestedArray($menuId, $includeDisabledItems = false, array $nodes = [], $parentId = 0)
@@ -221,13 +217,12 @@ trait MenuTree
             $self = call_user_func($this->queryCallback, $self);
         }
 
-
-        if($ignoreItemId) {
+        if ($ignoreItemId) {
             return $self->where($this->getMenuRelationColumn(), $menuId)
                 ->where(function ($query) use ($ignoreItemId) {
                     $query->where($this->getParentColumn(), '!=', $ignoreItemId)->orWhereNull($this->getParentColumn());
                 })
-                ->when(!$includeDisabledItems, function ($query) {
+                ->when(! $includeDisabledItems, function ($query) {
                     $query->where('enabled', true);
                 })
                 ->where('id', '!=', $ignoreItemId)
@@ -235,7 +230,7 @@ trait MenuTree
         }
 
         return $self->where($this->getMenuRelationColumn(), $menuId)
-            ->when(!$includeDisabledItems, function ($query) {
+            ->when(! $includeDisabledItems, function ($query) {
                 $query->where('enabled', true);
             })
             ->orderBy($this->getOrderColumn())->get()->toArray();
@@ -244,12 +239,10 @@ trait MenuTree
     /**
      * Get options for Select field in form.
      *
-     * @param \Closure|null $closure
-     * @param string        $rootText
-     *
+     * @param  string  $rootText
      * @return array
      */
-    public static function selectOptions($menuId, $ignoreItemId = null, $includeDisabledItems = false, \Closure $closure = null)
+    public static function selectOptions($menuId, $ignoreItemId = null, $includeDisabledItems = false, ?\Closure $closure = null)
     {
         $options = (new static())->withQuery($closure)->buildSelectOptions($menuId, $ignoreItemId, $includeDisabledItems);
 
@@ -259,11 +252,9 @@ trait MenuTree
     /**
      * Build options of select field in form.
      *
-     * @param array  $nodes
-     * @param int    $parentId
-     * @param string $prefix
-     * @param string $space
-     *
+     * @param  int  $parentId
+     * @param  string  $prefix
+     * @param  string  $space
      * @return array
      */
     protected function buildSelectOptions($menuId, $ignoreItemId, $includeDisabledItems = false, array $nodes = [], $parentId = 0, $prefix = '', $space = '&nbsp;')
@@ -297,7 +288,6 @@ trait MenuTree
 
     /**
      * Build the link based on uri
-     *
      */
     protected function getLinkAttribute()
     {
@@ -313,7 +303,6 @@ trait MenuTree
 
         return $uri;
     }
-
 
     /**
      * {@inheritdoc}

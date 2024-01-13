@@ -5,6 +5,7 @@ namespace BalajiDharma\LaravelMenu;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
+
 class MenuServiceProvider extends ServiceProvider
 {
     /**
@@ -19,7 +20,7 @@ class MenuServiceProvider extends ServiceProvider
         );
     }
 
-     /**
+    /**
      * Bootstrap the application events.
      *
      * @return void
@@ -39,8 +40,6 @@ class MenuServiceProvider extends ServiceProvider
 
     /**
      * Returns existing migration file if found, else uses the current timestamp.
-     *
-     * @return string
      */
     protected function getMigrationFileName($migrationFileName): string
     {
@@ -55,5 +54,4 @@ class MenuServiceProvider extends ServiceProvider
             ->push($this->app->databasePath()."/migrations/{$timestamp}_{$migrationFileName}")
             ->first();
     }
-
 }
