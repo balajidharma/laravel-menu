@@ -30,11 +30,11 @@ class MenuServiceProvider extends ServiceProvider
         if (app()->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../config/menu.php' => config_path('menu.php'),
-            ], 'config');
+            ], ['config', 'menu-config', 'admin-core', 'admin-core-config']);
 
             $this->publishes([
                 __DIR__.'/../database/migrations/create_menu_tables.php.stub' => $this->getMigrationFileName('create_menu_tables.php'),
-            ], 'migrations');
+            ], ['migrations', 'menu-migrations', 'admin-core', 'admin-core-migrations']);
         }
     }
 
