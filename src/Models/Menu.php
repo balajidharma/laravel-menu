@@ -47,13 +47,13 @@ class Menu extends Model
         return preg_match('/^[a-z0-9_-]+$/', $machine_name);
     }
 
-    protected static function getMenuTree($machine_name, $includeDisabledItems = false)
+    protected static function getMenuTree($machine_name, $includeDisabledItems = false, $checkPermission = false)
     {
         $menu = Menu::where('machine_name', $machine_name)->first();
         if (! $menu) {
             throw MenuNotExists::create($machine_name);
         }
 
-        return (new MenuItem)->toTree($menu->id, $includeDisabledItems);
+        return (new MenuItem)->toTree($menu->id, $includeDisabledItems, $checkPermission);
     }
 }

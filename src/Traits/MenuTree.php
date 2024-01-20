@@ -168,38 +168,43 @@ trait MenuTree
     /**
      * Format data to tree like array.
      *
-     * @return array
+     * @return \Illuminate\Support\Collection
      */
-    public function toTree($menuId, $includeDisabledItems = false)
+    public function toTree($menuId, $includeDisabledItems = false, $checkPermission = false)
     {
-        return $this->buildNestedArray($menuId, $includeDisabledItems);
+        return $this->buildNestedItems($menuId, $includeDisabledItems, $checkPermission);
     }
 
     /**
      * Build Nested array.
      *
      * @param  int  $parentId
-     * @return array
+     * @return \Illuminate\Support\Collection
      */
-    protected function buildNestedArray($menuId, $includeDisabledItems = false, array $nodes = [], $parentId = 0)
+    protected function buildNestedItems($menuId, $includeDisabledItems = false, $checkPermission = false, $nodes = null, $parentId = 0)
     {
-        $branch = [];
+        $branch = collect();
 
         if (empty($nodes)) {
             $nodes = $this->allNodes($menuId, null, $includeDisabledItems);
         }
+        $nodes->each(function ($node) use ($menuId, $nodes, $includeDisabledItems, $checkPermission, $parentId, &$branch) {
+            $hasPermission = true;
+            $parentColumn = $this->getParentColumn();
+            $keyName = $this->getKeyName();
 
-        foreach ($nodes as $node) {
-            if ($node[$this->getParentColumn()] == $parentId) {
-                $children = $this->buildNestedArray($menuId, $includeDisabledItems, $nodes, $node[$this->getKeyName()]);
-
+            if ($checkPermission && ! $this->checkHasPermission($node)) {
+                $hasPermission = false;
+            }
+            if ($parentId == $node->$parentColumn && $hasPermission) {
+                $children = $this->buildNestedItems($menuId, $includeDisabledItems, $checkPermission, $nodes, $node->$keyName);
                 if ($children) {
-                    $node['children'] = $children;
+                    $node->children = $children;
                 }
 
-                $branch[] = $node;
+                $branch->push($node);
             }
-        }
+        });
 
         return $branch;
     }
@@ -225,14 +230,20 @@ trait MenuTree
                 ->when(! $includeDisabledItems, function ($query) {
                     $query->where('enabled', true);
                 })
-                ->orderBy($this->getOrderColumn())->get()->toArray();
+                ->when($this->hasSpatiePermission, function ($query) {
+                    $query->with('roles');
+                })
+                ->orderBy($this->getOrderColumn())->get();
         }
 
         return $self->where($this->getMenuRelationColumn(), $menuId)
             ->when(! $includeDisabledItems, function ($query) {
                 $query->where('enabled', true);
             })
-            ->orderBy($this->getOrderColumn())->get()->toArray();
+            ->when($this->hasSpatiePermission, function ($query) {
+                $query->with('roles');
+            })
+            ->orderBy($this->getOrderColumn())->get();
     }
 
     /**
@@ -256,7 +267,7 @@ trait MenuTree
      * @param  string  $space
      * @return array
      */
-    protected function buildSelectOptions($menuId, $ignoreItemId, $includeDisabledItems = false, array $nodes = [], $parentId = 0, $prefix = '', $space = '&nbsp;')
+    protected function buildSelectOptions($menuId, $ignoreItemId, $includeDisabledItems = false, $nodes = null, $parentId = 0, $prefix = '', $space = '&nbsp;')
     {
         $prefix = $prefix ?: '┝'.$space;
 
@@ -266,21 +277,24 @@ trait MenuTree
             $nodes = $this->allNodes($menuId, $ignoreItemId, $includeDisabledItems);
         }
 
-        foreach ($nodes as $index => $node) {
-            if ($node[$this->getParentColumn()] == $parentId) {
-                $node[$this->getTitleColumn()] = $prefix.$space.$node[$this->getTitleColumn()];
+        $nodes->each(function ($node) use ($menuId, $nodes, $includeDisabledItems, $parentId, $prefix, $space, &$options) {
+            $parentColumn = $this->getParentColumn();
+            $keyName = $this->getKeyName();
+            $titleColumn = $this->getTitleColumn();
+            if ($parentId == $node->$parentColumn) {
+                $node->$titleColumn = $prefix.$space.$node->$titleColumn;
 
                 $childrenPrefix = str_replace('┝', str_repeat($space, 6), $prefix).'┝'.str_replace(['┝', $space], '', $prefix);
 
-                $children = $this->buildSelectOptions($menuId, null, $includeDisabledItems, $nodes, $node[$this->getKeyName()], $childrenPrefix);
+                $children = $this->buildSelectOptions($menuId, null, $includeDisabledItems, $nodes, $node->$keyName, $childrenPrefix);
 
-                $options[$node[$this->getKeyName()]] = $node[$this->getTitleColumn()];
+                $options[$node->$keyName] = $node->$titleColumn;
 
                 if ($children) {
                     $options += $children;
                 }
             }
-        }
+        });
 
         return $options;
     }
@@ -336,5 +350,23 @@ trait MenuTree
 
             return $branch;
         });
+    }
+
+    protected function checkHasPermission($menuItem)
+    {
+        if (! $this->hasSpatiePermission) {
+            return true;
+        }
+        $roles = $menuItem->roles;
+
+        if ($roles->isEmpty()) {
+            return true;
+        }
+        $user = auth()->user();
+        if ($user) {
+            return $user->hasAnyRole($roles);
+        }
+
+        return false;
     }
 }

@@ -9,10 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MenuItem extends Model
 {
-    use spatiePermission;
     use MenuTree {
         MenuTree::boot as treeBoot;
     }
+    use spatiePermission;
 
     /**
      * The attributes that aren't mass assignable.
