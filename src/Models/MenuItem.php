@@ -3,7 +3,7 @@
 namespace BalajiDharma\LaravelMenu\Models;
 
 use BalajiDharma\LaravelMenu\Traits\MenuTree;
-use BalajiDharma\LaravelMenu\Traits\spatiePermission;
+use BalajiDharma\LaravelMenu\Traits\SpatiePermission;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -12,7 +12,7 @@ class MenuItem extends Model
     use MenuTree {
         MenuTree::boot as treeBoot;
     }
-    use spatiePermission;
+    use SpatiePermission;
 
     /**
      * The attributes that aren't mass assignable.
