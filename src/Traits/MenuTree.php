@@ -216,7 +216,7 @@ trait MenuTree
      */
     public function allNodes($menuId, $ignoreItemId = null, $includeDisabledItems = false)
     {
-        $self = new static();
+        $self = new static;
 
         if ($this->queryCallback instanceof \Closure) {
             $self = call_user_func($this->queryCallback, $self);
@@ -254,7 +254,7 @@ trait MenuTree
      */
     public static function selectOptions($menuId, $ignoreItemId = null, $includeDisabledItems = false, ?\Closure $closure = null)
     {
-        $options = (new static())->withQuery($closure)->buildSelectOptions($menuId, $ignoreItemId, $includeDisabledItems);
+        $options = (new static)->withQuery($closure)->buildSelectOptions($menuId, $ignoreItemId, $includeDisabledItems);
 
         return collect($options)->all();
     }
