@@ -5,11 +5,14 @@ namespace BalajiDharma\LaravelMenu\Models;
 use BalajiDharma\LaravelMenu\Exceptions\MachineNameInvalidArgument;
 use BalajiDharma\LaravelMenu\Exceptions\MenuAlreadyExists;
 use BalajiDharma\LaravelMenu\Exceptions\MenuNotExists;
+use BalajiDharma\LaravelMenu\Traits\LaravelCategories;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Menu extends Model
 {
+    use LaravelCategories;
+
     /**
      * The attributes that aren't mass assignable.
      *
