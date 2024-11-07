@@ -2,7 +2,7 @@
 
 namespace BalajiDharma\LaravelMenu\Traits;
 
-if (class_exists(\Spatie\Permission\PermissionRegistrar::class)) {
+if (class_exists(\BalajiDharma\LaravelCategory\CategoryServiceProvider::class)) {
     trait LaravelCategories
     {
         use \BalajiDharma\LaravelCategory\Traits\HasCategories;

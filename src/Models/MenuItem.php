@@ -2,6 +2,7 @@
 
 namespace BalajiDharma\LaravelMenu\Models;
 
+use BalajiDharma\LaravelMenu\Traits\LaravelCategories;
 use BalajiDharma\LaravelMenu\Traits\MenuTree;
 use BalajiDharma\LaravelMenu\Traits\SpatiePermission;
 use Illuminate\Database\Eloquent\Model;
@@ -9,10 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MenuItem extends Model
 {
-    use MenuTree {
-        MenuTree::boot as treeBoot;
-    }
-    use SpatiePermission;
+    use LaravelCategories, MenuTree, SpatiePermission;
 
     /**
      * The attributes that aren't mass assignable.

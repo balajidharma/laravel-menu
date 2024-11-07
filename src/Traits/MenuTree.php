@@ -14,6 +14,20 @@ trait MenuTree
     protected $queryCallback;
 
     /**
+     * {@inheritdoc}
+     */
+    protected static function bootMenuTree()
+    {
+        static::saving(function (Model $branch) {
+            $parentColumn = $branch->getParentColumn();
+
+            if (Request::filled($parentColumn) && Request::input($parentColumn) == $branch->getKey()) {
+                throw InvalidParent::create();
+            }
+        });
+    }
+
+    /**
      * Get children of current node.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -332,24 +346,6 @@ trait MenuTree
     public function initializeMenuTree()
     {
         $this->appends = array_unique(array_merge($this->appends, ['link']));
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::saving(function (Model $branch) {
-            $parentColumn = $branch->getParentColumn();
-
-            if (Request::filled($parentColumn) && Request::input($parentColumn) == $branch->getKey()) {
-                throw InvalidParent::create();
-            }
-
-            return $branch;
-        });
     }
 
     protected function checkHasPermission($menuItem)
