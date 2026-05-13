@@ -6,6 +6,16 @@
 <a href="https://packagist.org/packages/balajidharma/laravel-menu"><img src="https://poser.pugx.org/balajidharma/laravel-menu/license" alt="License"></a>
 </p>
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Demo](#demo)
+- [Create Menu](#create-menu)
+- [Create Menu Item](#create-menu-item)
+- [Create multiple Menu Items](#create-multiple-menu-items)
+- [Menu Tree](#menu-tree)
+- [Menu Link Tokens](#menu-link-tokens)
+
 ## Installation
 - Install the package via composer
 ```bash
@@ -19,6 +29,9 @@ php artisan vendor:publish --provider="BalajiDharma\LaravelMenu\MenuServiceProvi
 ```bash
 php artisan migrate
 ```
+
+## Demo
+The "[Basic Laravel Admin Penel](https://github.com/balajidharma/basic-laravel-admin-panel)" starter kit come with Laravel Menu
 
 ## Create Menu
 ```php
@@ -99,13 +112,23 @@ $menu->menuItems()->createMany($menu_items);
 ```
 
 ## Menu Tree
+- Get menu tree by using menu id
 ```php
+use BalajiDharma\LaravelMenu\Models\MenuItem;
+
 $items = (new MenuItem)->toTree($menu->id);
 ```
 
+- Get menu tree by using menu machine name
+```php
+use BalajiDharma\LaravelMenu\Models\Menu;
+
+$items = Menu::getMenuTree('admin');
+```
+
 ## Menu Link Tokens
-- Enter <admin> to add admin prefix to the link.
-- Enter <nolink> for non link menu.
+- Enter `<admin>` to add admin prefix to the link.
+- Enter `<nolink>` for non link menu.
 
 Get the generated uri on `link` attribute
 ```php

@@ -13,5 +13,5 @@ return [
         'menus' => 'menus',
 
         'menu_items' => 'menu_items',
-    ]
+    ],
 ];

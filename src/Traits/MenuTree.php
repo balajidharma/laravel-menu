@@ -8,11 +8,24 @@ use Illuminate\Support\Facades\Request;
 
 trait MenuTree
 {
-
     /**
      * @var \Closure
      */
     protected $queryCallback;
+
+    /**
+     * {@inheritdoc}
+     */
+    protected static function bootMenuTree()
+    {
+        static::saving(function (Model $branch) {
+            $parentColumn = $branch->getParentColumn();
+
+            if (Request::filled($parentColumn) && Request::input($parentColumn) == $branch->getKey()) {
+                throw InvalidParent::create();
+            }
+        });
+    }
 
     /**
      * Get children of current node.
@@ -45,7 +58,7 @@ trait MenuTree
 
         $parent = $this->parent;
 
-        while (!is_null($parent)) {
+        while (! is_null($parent)) {
             $parents->push($parent);
             $parent = $parent->parent;
         }
@@ -76,7 +89,7 @@ trait MenuTree
     /**
      * Set parent column.
      *
-     * @param string $column
+     * @param  string  $column
      */
     public function setParentColumn($column)
     {
@@ -100,7 +113,7 @@ trait MenuTree
     /**
      * Set title column.
      *
-     * @param string $column
+     * @param  string  $column
      */
     public function setTitleColumn($column)
     {
@@ -124,14 +137,14 @@ trait MenuTree
     /**
      * Set order column.
      *
-     * @param string $column
+     * @param  string  $column
      */
     public function setOrderColumn($column)
     {
         $this->orderColumn = $column;
     }
 
-     /**
+    /**
      * @return string
      */
     public function getMenuRelationColumn()
@@ -146,7 +159,7 @@ trait MenuTree
     /**
      * Set menu relation column.
      *
-     * @param string $column
+     * @param  string  $column
      */
     public function setMenuRelationColumn($column)
     {
@@ -156,11 +169,10 @@ trait MenuTree
     /**
      * Set query callback to model.
      *
-     * @param \Closure|null $query
      *
      * @return $this
      */
-    public function withQuery(\Closure $query = null)
+    public function withQuery(?\Closure $query = null)
     {
         $this->queryCallback = $query;
 
@@ -170,40 +182,43 @@ trait MenuTree
     /**
      * Format data to tree like array.
      *
-     * @return array
+     * @return \Illuminate\Support\Collection
      */
-    public function toTree($menuId)
+    public function toTree($menuId, $includeDisabledItems = false, $checkPermission = false)
     {
-        return $this->buildNestedArray($menuId);
+        return $this->buildNestedItems($menuId, $includeDisabledItems, $checkPermission);
     }
 
     /**
      * Build Nested array.
      *
-     * @param array $nodes
-     * @param int   $parentId
-     *
-     * @return array
+     * @param  int  $parentId
+     * @return \Illuminate\Support\Collection
      */
-    protected function buildNestedArray($menuId, array $nodes = [], $parentId = 0)
+    protected function buildNestedItems($menuId, $includeDisabledItems = false, $checkPermission = false, $nodes = null, $parentId = 0)
     {
-        $branch = [];
+        $branch = collect();
 
         if (empty($nodes)) {
-            $nodes = $this->allNodes($menuId);
+            $nodes = $this->allNodes($menuId, null, $includeDisabledItems);
         }
+        $nodes->each(function ($node) use ($menuId, $nodes, $includeDisabledItems, $checkPermission, $parentId, &$branch) {
+            $hasPermission = true;
+            $parentColumn = $this->getParentColumn();
+            $keyName = $this->getKeyName();
 
-        foreach ($nodes as $node) {
-            if ($node[$this->getParentColumn()] == $parentId) {
-                $children = $this->buildNestedArray($menuId, $nodes, $node[$this->getKeyName()]);
-
+            if ($checkPermission && ! $this->checkHasPermission($node)) {
+                $hasPermission = false;
+            }
+            if ($parentId == $node->$parentColumn && $hasPermission) {
+                $children = $this->buildNestedItems($menuId, $includeDisabledItems, $checkPermission, $nodes, $node->$keyName);
                 if ($children) {
-                    $node['children'] = $children;
+                    $node->children = $children;
                 }
 
-                $branch[] = $node;
+                $branch->push($node);
             }
-        }
+        });
 
         return $branch;
     }
@@ -213,37 +228,47 @@ trait MenuTree
      *
      * @return mixed
      */
-    public function allNodes($menuId, $ignoreItemId = null)
+    public function allNodes($menuId, $ignoreItemId = null, $includeDisabledItems = false)
     {
-        $self = new static();
+        $self = new static;
 
         if ($this->queryCallback instanceof \Closure) {
             $self = call_user_func($this->queryCallback, $self);
         }
 
-
-        if($ignoreItemId) {
+        if ($ignoreItemId) {
             return $self->where($this->getMenuRelationColumn(), $menuId)
                 ->where(function ($query) use ($ignoreItemId) {
                     $query->where($this->getParentColumn(), '!=', $ignoreItemId)->orWhereNull($this->getParentColumn());
                 })
-                ->orderBy($this->getOrderColumn())->get()->toArray();
+                ->when(! $includeDisabledItems, function ($query) {
+                    $query->where('enabled', true);
+                })
+                ->when($this->hasSpatiePermission, function ($query) {
+                    $query->with('roles');
+                })
+                ->orderBy($this->getOrderColumn())->get();
         }
 
-        return $self->where($this->getMenuRelationColumn(), $menuId)->orderBy($this->getOrderColumn())->get()->toArray();
+        return $self->where($this->getMenuRelationColumn(), $menuId)
+            ->when(! $includeDisabledItems, function ($query) {
+                $query->where('enabled', true);
+            })
+            ->when($this->hasSpatiePermission, function ($query) {
+                $query->with('roles');
+            })
+            ->orderBy($this->getOrderColumn())->get();
     }
 
     /**
      * Get options for Select field in form.
      *
-     * @param \Closure|null $closure
-     * @param string        $rootText
-     *
+     * @param  string  $rootText
      * @return array
      */
-    public static function selectOptions($menuId, $ignoreItemId = null, \Closure $closure = null)
+    public static function selectOptions($menuId, $ignoreItemId = null, $includeDisabledItems = false, ?\Closure $closure = null)
     {
-        $options = (new static())->withQuery($closure)->buildSelectOptions($menuId, $ignoreItemId);
+        $options = (new static)->withQuery($closure)->buildSelectOptions($menuId, $ignoreItemId, $includeDisabledItems);
 
         return collect($options)->all();
     }
@@ -251,45 +276,45 @@ trait MenuTree
     /**
      * Build options of select field in form.
      *
-     * @param array  $nodes
-     * @param int    $parentId
-     * @param string $prefix
-     * @param string $space
-     *
+     * @param  int  $parentId
+     * @param  string  $prefix
+     * @param  string  $space
      * @return array
      */
-    protected function buildSelectOptions($menuId, $ignoreItemId, array $nodes = [], $parentId = 0, $prefix = '', $space = '&nbsp;')
+    protected function buildSelectOptions($menuId, $ignoreItemId, $includeDisabledItems = false, $nodes = null, $parentId = 0, $prefix = '', $space = '&nbsp;')
     {
         $prefix = $prefix ?: '┝'.$space;
 
         $options = [];
 
         if (empty($nodes)) {
-            $nodes = $this->allNodes($menuId, $ignoreItemId);
+            $nodes = $this->allNodes($menuId, $ignoreItemId, $includeDisabledItems);
         }
 
-        foreach ($nodes as $index => $node) {
-            if ($node[$this->getParentColumn()] == $parentId) {
-                $node[$this->getTitleColumn()] = $prefix.$space.$node[$this->getTitleColumn()];
+        $nodes->each(function ($node) use ($menuId, $nodes, $includeDisabledItems, $parentId, $prefix, $space, &$options) {
+            $parentColumn = $this->getParentColumn();
+            $keyName = $this->getKeyName();
+            $titleColumn = $this->getTitleColumn();
+            if ($parentId == $node->$parentColumn) {
+                $node->$titleColumn = $prefix.$space.$node->$titleColumn;
 
                 $childrenPrefix = str_replace('┝', str_repeat($space, 6), $prefix).'┝'.str_replace(['┝', $space], '', $prefix);
 
-                $children = $this->buildSelectOptions($menuId, null, $nodes, $node[$this->getKeyName()], $childrenPrefix);
+                $children = $this->buildSelectOptions($menuId, null, $includeDisabledItems, $nodes, $node->$keyName, $childrenPrefix);
 
-                $options[$node[$this->getKeyName()]] = $node[$this->getTitleColumn()];
+                $options[$node->$keyName] = $node->$titleColumn;
 
                 if ($children) {
                     $options += $children;
                 }
             }
-        }
+        });
 
         return $options;
     }
 
     /**
      * Build the link based on uri
-     *
      */
     protected function getLinkAttribute()
     {
@@ -305,7 +330,6 @@ trait MenuTree
 
         return $uri;
     }
-
 
     /**
      * {@inheritdoc}
@@ -324,21 +348,21 @@ trait MenuTree
         $this->appends = array_unique(array_merge($this->appends, ['link']));
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected static function boot()
+    protected function checkHasPermission($menuItem)
     {
-        parent::boot();
+        if (! $this->hasSpatiePermission) {
+            return true;
+        }
+        $roles = $menuItem->roles;
 
-        static::saving(function (Model $branch) {
-            $parentColumn = $branch->getParentColumn();
+        if ($roles->isEmpty()) {
+            return true;
+        }
+        $user = auth()->user();
+        if ($user) {
+            return $user->hasAnyRole($roles);
+        }
 
-            if (Request::filled($parentColumn) && Request::input($parentColumn) == $branch->getKey()) {
-                throw InvalidParent::create();
-            }
-
-            return $branch;
-        });
+        return false;
     }
 }

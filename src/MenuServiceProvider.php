@@ -5,6 +5,7 @@ namespace BalajiDharma\LaravelMenu;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
+
 class MenuServiceProvider extends ServiceProvider
 {
     /**
@@ -19,7 +20,7 @@ class MenuServiceProvider extends ServiceProvider
         );
     }
 
-     /**
+    /**
      * Bootstrap the application events.
      *
      * @return void
@@ -29,20 +30,16 @@ class MenuServiceProvider extends ServiceProvider
         if (app()->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../config/menu.php' => config_path('menu.php'),
-            ], 'config');
+            ], ['config', 'menu-config', 'admin-core', 'admin-core-config']);
 
             $this->publishes([
                 __DIR__.'/../database/migrations/create_menu_tables.php.stub' => $this->getMigrationFileName('create_menu_tables.php'),
-            ], 'migrations');
+            ], ['migrations', 'menu-migrations', 'admin-core', 'admin-core-migrations']);
         }
-
-        $this->loadViewsFrom(__DIR__.'/resources/views', 'menu');
     }
 
     /**
      * Returns existing migration file if found, else uses the current timestamp.
-     *
-     * @return string
      */
     protected function getMigrationFileName($migrationFileName): string
     {
@@ -57,5 +54,4 @@ class MenuServiceProvider extends ServiceProvider
             ->push($this->app->databasePath()."/migrations/{$timestamp}_{$migrationFileName}")
             ->first();
     }
-
 }

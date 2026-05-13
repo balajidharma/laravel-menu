@@ -2,17 +2,18 @@
 
 namespace BalajiDharma\LaravelMenu\Models;
 
+use BalajiDharma\LaravelMenu\Traits\LaravelCategories;
 use BalajiDharma\LaravelMenu\Traits\MenuTree;
+use BalajiDharma\LaravelMenu\Traits\SpatiePermission;
+use BalajiDharma\LaravelMenu\Traits\HasLogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MenuItem extends Model
 {
-    use MenuTree {
-        MenuTree::boot as treeBoot;
-    }
+    use LaravelCategories, MenuTree, SpatiePermission, HasLogsActivity;
 
-     /**
+    /**
      * The attributes that aren't mass assignable.
      *
      * @var array
@@ -37,5 +38,4 @@ class MenuItem extends Model
     {
         $this->attributes['weight'] = $weight ?? 0;
     }
-
 }
